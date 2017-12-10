@@ -89,6 +89,18 @@ class Rule(NamedTuple):
         body_string = ", ".join([str(l) for l in self.body])
         return f"{self.head}{str(self.rule_type)} :- {body_string}."
 
+    def is_deductive(self) -> bool:
+        return isinstance(self.rule_type, DeductiveRule)
+
+    def is_inductive(self) -> bool:
+        return isinstance(self.rule_type, InductiveRule)
+
+    def is_async(self) -> bool:
+        return isinstance(self.rule_type, AsyncRule)
+
+    def is_constant_time(self) -> bool:
+        return isinstance(self.rule_type, ConstantTimeRule)
+
 class Program(NamedTuple):
     rules: List[Rule]
 
