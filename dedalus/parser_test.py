@@ -10,6 +10,8 @@ class TestParser(unittest.TestCase):
             "p() :- .",
             "p(X) :- .",
             "p(x) :- .",
+            "p(1) :- .",
+            "p(42) :- .",
             "foo(X) :- .",
             "foo(x) :- .",
             "foo(XXX) :- .",
@@ -73,12 +75,12 @@ class TestParser(unittest.TestCase):
             "p()",
             "p(X)",
             "p(X) :- ",
+            "42(X) :- .",
             "p(X) :- p(X)",
             "p X) :- p(X).",
             "p(X  :- p(X).",
             "p(X) :- p X).",
             "p(X) :- p(X .",
-            "p(1) :- p(X).",
             "p($) :- p(X).",
             "p(X)@ :- p(X).",
             "p(X)@foo :- p(X).",
@@ -92,6 +94,7 @@ class TestParser(unittest.TestCase):
         for bad_program in bad_programs:
             with self.assertRaises(parsec.ParseError):
                 parser.parse(bad_program)
+                print(bad_program)
 
 if __name__ == '__main__':
     unittest.main()

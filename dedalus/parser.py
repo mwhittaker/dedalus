@@ -23,8 +23,9 @@ turnstyle = lexeme(string(':-'))
 next_ = lexeme(string('next'))
 async = lexeme(string('async'))
 number = lexeme(regex(r'\d+')).parsecmap(int)
-lower_id = lexeme(regex(r'[a-z]\w*'))
-upper_id = lexeme(regex(r'[A-Z]\w*'))
+constant_id = lexeme(regex(r'[a-z0-9]\w*'))
+variable_id = lexeme(regex(r'[A-Z]\w*'))
+predicate_id = lexeme(regex(r'[a-z]\w*'))
 
 # Parsing.
 def maybe(p):
@@ -43,18 +44,18 @@ def is_location():
 @generate
 def constant():
     is_location_ = yield is_location
-    x = yield lower_id
+    x = yield constant_id
     return ast.Constant(x, is_location_)
 
 @generate
 def variable():
     is_location_ = yield is_location
-    x = yield upper_id
+    x = yield variable_id
     return ast.Variable(x, is_location_)
 
 term = constant ^ variable
 
-predicate = lower_id.parsecmap(ast.Predicate)
+predicate = predicate_id.parsecmap(ast.Predicate)
 
 @generate
 def atom():
