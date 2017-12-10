@@ -1,4 +1,4 @@
-# Dedalus
+# Dedalus [![Build Status](https://travis-ci.org/mwhittaker/dedalus.svg?branch=master)](https://travis-ci.org/mwhittaker/dedalus)
 A Dedalus interpreter. The syntax and semantics of Dedalus (and Dedalus+ and
 Dedalus^S) are defined in [[1]][alvaro_paper] and [[2]][marczak_paper].
 
