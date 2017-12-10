@@ -9,7 +9,7 @@ class TestDesugar(unittest.TestCase):
         return "\n".join(lines)
 
     def test_desugar(self):
-        program = parser.parse(r"""
+        get_program = lambda: parser.parse(r"""
             // Desugared.
             p(X) :- .
             p(X) :- q(X), r(X).
@@ -28,6 +28,7 @@ class TestDesugar(unittest.TestCase):
             p(X, Y, Z) :- q(X, Y, Z), r(#X, Y, Z).
             p(X, #Y, Z) :- q(X, Y, #Z), r(#X, Y, Z).
         """)
+        program = get_program()
         desugared = desugar.desugar(program)
 
         expected = self._strip_leading_whitespace(r"""
@@ -47,9 +48,12 @@ class TestDesugar(unittest.TestCase):
             p(X, #Y, Z) :- q(X, Y, #Z), r(#X, Y, Z).
         """)
 
-        # Expand full diff when test fails.
-        self.maxDiff = None
+        # Test that desugaring works.
+        self.maxDiff = None # Expand full diff when test fails.
         self.assertEqual(str(desugared), expected)
+
+        # Test that desugaring doesn't affect the original program.
+        self.assertEqual(program, get_program())
 
 if __name__ == '__main__':
     unittest.main()
