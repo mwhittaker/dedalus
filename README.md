@@ -13,6 +13,7 @@ pip install -r requirements.txt
 ```
 
 \[1]: Alvaro, Peter, et al. "Dedalus: Datalog in time and space." _Datalog Reloaded_ (2011): 262-281.
+
 \[2]: Marczak, William, et al. "Confluence analysis for distributed programs: A model-theoretic approach." _Datalog in Academia and Industry_ (2012): 135-147.
 
 [alvaro_paper]: https://scholar.google.com/scholar?cluster=4658639044512647014
