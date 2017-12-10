@@ -102,18 +102,3 @@ parser = ignore >> program
 
 def parse(s: str) -> ast.Program:
     return parser.parse_strict(s)
-
-def main() -> None:
-    prog = """
-      p(X) :- p(#X, #Y, z).
-      p(X)@next :- p(X).
-      p(X)@async :- p(X).
-      p(X)@0 :- p(X).
-      p(X)@2 :- p(X).
-      p(X)@422 :- p(X).
-    """
-    print(repr(parse(prog)))
-    print(str(parse(prog)))
-
-if __name__ == '__main__':
-    main()

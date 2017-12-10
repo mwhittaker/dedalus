@@ -106,15 +106,3 @@ class Program(NamedTuple):
 
     def __str__(self) -> str:
         return "\n".join(str(rule) for rule in self.rules)
-
-def main() -> None:
-    p = Predicate("p")
-    X = Variable("X", True)
-    r = Program([
-        Rule(Atom(p, [X]), DeductiveRule(), [Literal(True, Atom(p, [X]))]),
-        Rule(Atom(p, [X]), ConstantTimeRule(42), [Literal(True, Atom(p, [X]))]),
-    ])
-    print(str(r))
-
-if __name__ == "__main__":
-    main()
