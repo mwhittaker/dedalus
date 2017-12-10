@@ -1,0 +1,22 @@
+// Respond to get requests.
+get_resp(#SRC, ID, V)@async :- get_request(#DST, SRC, ID, K), kvs(#DST, K, V).
+
+// Delete current binding of K.
+kvs_delete(#DST, K, V) :- set_request(#DST, SRC, ID, K, V).
+
+// Add new binding of K.
+kvs(#DST, K, V)@next :- set_request(#DST, SRC, ID, K, V).
+
+// Ack set request.
+set_response(#SRC, ID)@async :- set_request(#DST, SRC, ID, K, V).
+
+// Persist the key-value store.
+kvs(K, V)@next :- kvs(K, V), !kvs_delete(K, V).
+
+// EDB.
+set_req(#server, client, 0, 0, zero)@0 :- .
+set_req(#server, client, 1, 1, one)@1 :- .
+set_req(#server, client, 2, 2, two)@2 :- .
+get_req(#server, client, 0, 0)@3 :- .
+get_req(#server, client, 1, 1)@4 :- .
+get_req(#server, client, 2, 2)@5 :- .
