@@ -34,13 +34,25 @@ class Atom(NamedTuple):
         terms_string = ", ".join(str(term) for term in self.terms)
         return "{}({})".format(self.predicate, terms_string)
 
+    def constants(self) -> List[Constant]:
+        return [term for term in self.terms if isinstance(term, Constant)]
+
+    def variables(self) -> List[Variable]:
+        return [term for term in self.terms if isinstance(term, Variable)]
+
 class Literal(NamedTuple):
-    negated: bool
+    negative: bool
     atom: Atom
 
     def __str__(self) -> str:
-        bang = "!" if self.negated else ""
+        bang = "!" if self.negative else ""
         return f"{bang}{self.atom}"
+
+    def is_negative(self) -> bool:
+        return self.negative
+
+    def is_positive(self) -> bool:
+        return not self.is_negative()
 
 class DeductiveRule(NamedTuple):
     pass

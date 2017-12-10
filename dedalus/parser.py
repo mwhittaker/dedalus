@@ -50,7 +50,7 @@ def constant():
 def variable():
     is_location_ = yield is_location
     x = yield upper_id
-    return ast.Constant(x, is_location_)
+    return ast.Variable(x, is_location_)
 
 term = constant ^ variable
 
@@ -68,9 +68,9 @@ def atom():
 def literal():
     bangs = yield times(bang, 0, 1)
     assert len(bangs) in [0, 1]
-    negated = True if len(bangs) == 1 else False
+    negative = True if len(bangs) == 1 else False
     atom_ = yield atom
-    return ast.Literal(negated, atom_)
+    return ast.Literal(negative, atom_)
 
 inductive_rule = at >> next_.parsecmap(lambda _: ast.InductiveRule())
 async_rule = at >> async.parsecmap(lambda _: ast.AsyncRule())
