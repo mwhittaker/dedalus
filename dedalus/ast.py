@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, NamedTuple, NewType, Union
+from typing import List, NamedTuple, NewType, Set, Union
 
 
 class Constant(NamedTuple):
@@ -106,3 +106,10 @@ class Program(NamedTuple):
 
     def __str__(self) -> str:
         return "\n".join(str(rule) for rule in self.rules)
+
+    def predicates(self) -> Set[Predicate]:
+        predicates: Set[Predicate] = set()
+        for rule in self.rules:
+            predicates |= {rule.head.predicate}
+            predicates |= {l.atom.predicate for l in rule.body}
+        return predicates

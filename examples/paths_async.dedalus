@@ -1,0 +1,11 @@
+// a -> b -> c -> d
+//      ^    |
+//      '____'
+link(#node, a, b)@0 :- .
+link(#node, b, c)@0 :- .
+link(#node, c, d)@0 :- .
+link(#node, c, b)@0 :- .
+
+path(X, Y)@async :- link(X, Y).
+path(X, Y)@async :- path(X, Z), link(Z, Y).
+path(X, Y)@next :- path(X, Y).
