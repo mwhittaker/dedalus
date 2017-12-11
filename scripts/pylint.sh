@@ -3,7 +3,7 @@
 set -euo pipefail
 
 main() {
-    pylint dedalus --errors-only
+    PYTHONPATH="dedalus" pylint dedalus --errors-only
 }
 
 main "$@"

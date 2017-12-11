@@ -3,7 +3,7 @@
 set -euo pipefail
 
 main() {
-    mypy dedalus --ignore-missing-imports
+    MYPYPATH="dedalus" mypy dedalus --ignore-missing-imports
 }
 
 main "$@"
