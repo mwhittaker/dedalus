@@ -6,6 +6,7 @@ import random
 
 from desugar import desugar
 from parser import parse
+from repl import repl
 from run import run, spawn
 from typecheck import typecheck
 import ast
@@ -34,17 +35,6 @@ def _run(filename: str, timesteps: int, randint: Callable[[], int]) -> None:
     process = run(process, timesteps)
     print(str(process))
 
-def _repl() -> None:
-    while True:
-        try:
-            print('> ', end='')
-            program = typecheck(desugar(parse(input())))
-            print(program)
-        except EOFError:
-            break
-        except Exception as e:
-            print(e)
-
 def main(args: argparse.Namespace) -> None:
     if args.subcommand == 'parse':
         _parse(args.filename)
@@ -57,7 +47,7 @@ def main(args: argparse.Namespace) -> None:
         randint = lambda: random.randint(args.low, args.high)
         _run(args.filename, args.timesteps, randint)
     elif args.subcommand == 'repl':
-        _repl()
+        repl()
     else:
         print(f'Unrecognized subcommand "{args.subcommand}".')
 
