@@ -8,5 +8,6 @@ parsec==3.3
 psutil==5.4.2
 pylint==1.7.4
 six==1.11.0
+tabulate==0.8.2
 typed-ast==1.1.0
 wrapt==1.10.11
