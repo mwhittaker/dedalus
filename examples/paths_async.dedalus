@@ -1,10 +1,10 @@
 // a -> b -> c -> d
 //      ^    |
 //      '____'
-link(#node, a, b)@0 :- .
-link(#node, b, c)@0 :- .
-link(#node, c, d)@0 :- .
-link(#node, c, b)@0 :- .
+link(#node, a, b) :- .
+link(#node, b, c) :- .
+link(#node, c, d) :- .
+link(#node, c, b) :- .
 
 path(X, Y)@async :- link(X, Y).
 path(X, Y)@async :- path(X, Z), link(Z, Y).
