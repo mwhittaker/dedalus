@@ -64,8 +64,10 @@ def _subst(atom: ast.Atom, bindings: Bindings) -> Tuple[Any, ...]:
 def _unify(atoms: List[ast.Atom],
            tuples: List[Tuple[Any, ...]]) \
            -> Optional[Bindings]:
-    bindings: Dict[ast.Variable, str] = {}
+    bindings: Bindings = {}
+    assert len(atoms) == len(tuples), (atoms, tuples)
     for (atom, tuple_) in zip(atoms, tuples):
+        assert len(atom.terms) == len(tuple_), (atom, tuple_)
         for (term, value) in zip(atom.terms, tuple_):
             if isinstance(term, ast.Constant):
                 if term.x != value:
