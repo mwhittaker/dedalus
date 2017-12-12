@@ -5,7 +5,7 @@ from parser import parse
 from typecheck import typecheck
 
 class TestTypecheck(unittest.TestCase):
-    def test_good_progarms(self):
+    def test_good_programs(self) -> None:
         good_programs = [
             "p(#a, a) :- .",
             "p(X) :- p(X).",
@@ -27,7 +27,7 @@ class TestTypecheck(unittest.TestCase):
                 print(good_program)
                 raise e
 
-    def test_bad_programs(self):
+    def test_bad_programs(self) -> None:
         bad_programs = [
             # Inconsistent arities.
             "p(X, Y) :- p(X), p(Y).",

@@ -5,7 +5,7 @@ import parsec
 import parser
 
 class TestParser(unittest.TestCase):
-    def test_good_programs(self):
+    def test_good_programs(self) -> None:
         good_programs = [
             "p() :- .",
             "p(X) :- .",
@@ -68,7 +68,7 @@ class TestParser(unittest.TestCase):
                 print(good_program)
                 raise e
 
-    def test_bad_programs(self):
+    def test_bad_programs(self) -> None:
         bad_programs = [
             "",
             "p",

@@ -8,7 +8,7 @@ class TestDesugar(unittest.TestCase):
         lines = [line.strip() for line in s.split("\n") if line.strip() != ""]
         return "\n".join(lines)
 
-    def test_desugar(self):
+    def test_desugar(self) -> None:
         get_program = lambda: parser.parse(r"""
             // Desugared.
             p(X) :- .
