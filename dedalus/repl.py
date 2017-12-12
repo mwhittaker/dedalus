@@ -107,8 +107,9 @@ command = ignore >> (help_ ^ load ^ show ^ step ^ line)
 def repl(filename: Optional[str]) -> None:
     state = ReplState(None, None)
     if filename is not None:
-        state = Load(filename).run(state)
-        state = Show().run(state)
+        # Pylint is confused: https://github.com/PyCQA/pylint/issues/1628
+        state = Load(filename).run(state) # pylint: disable=no-member
+        state = Show().run(state) # pylint: disable=no-member
 
     while True:
         try:
