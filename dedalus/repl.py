@@ -104,8 +104,11 @@ line = anything.parsecmap(Line)
 step = step_cmd >> maybe(number).parsecmap(Step)
 command = ignore >> (help_ ^ load ^ show ^ step ^ line)
 
-def repl() -> None:
+def repl(filename: Optional[str]) -> None:
     state = ReplState(None, None)
+    if filename is not None:
+        state = Load(filename).run(state)
+        state = Show().run(state)
 
     while True:
         try:

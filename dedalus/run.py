@@ -26,9 +26,23 @@ class Process(NamedTuple):
 
     def __str__(self) -> str:
         timestep = f"timestep = {self.timestep}"
-        database = "\n".join(p.x + "\n" + tabulate(r, tablefmt="psql")
-                             for (p, r) in self.database.items())
-        return f"{timestep}\n\n{database}"
+
+        relations = []
+        for p in sorted(self.database):
+            relations.append(p.x)
+            relation = sorted(self.database[p])
+            relations.append(tabulate(relation, tablefmt="psql"))
+        database = "\n".join(relations)
+
+        async_relations = []
+        for t in sorted(self.async_buffer):
+            for p in sorted(self.async_buffer[t]):
+                async_relations.append(f"{p.x} (t = {t})")
+                relation = sorted(self.async_buffer[t][p])
+                async_relations.append(tabulate(relation, tablefmt="psql"))
+        async_buffer = "\n".join(async_relations)
+
+        return f"{timestep}\n\n\n{database}\n\n\n{async_buffer}"
 
 def _empty_database(program: ast.Program) -> Database:
     return {p: set() for p in program.predicates()}
@@ -133,13 +147,15 @@ def step(process: Process) -> Process:
         process.async_buffer[next_timestep][p] |= tuples
 
     # Async rules.
-    for rule in inductive_rules:
+    for rule in async_rules:
         for tuple_ in _eval_rule(process, rule):
             p = rule.head.predicate
             async_timestep = process.timestep + process.randint()
             process.async_buffer[async_timestep][p].add(tuple_)
 
+    timestep = process.timestep
     process = process._replace(timestep=next_timestep)
+    del process.async_buffer[timestep]
     return process
 
 def run(process: Process, timesteps: int) -> Process:

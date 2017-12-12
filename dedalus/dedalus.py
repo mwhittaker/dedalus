@@ -47,7 +47,7 @@ def main(args: argparse.Namespace) -> None:
         randint = lambda: random.randint(args.low, args.high)
         _run(args.filename, args.timesteps, randint)
     elif args.subcommand == 'repl':
-        repl()
+        repl(args.filename)
     else:
         print(f'Unrecognized subcommand "{args.subcommand}".')
 
@@ -68,6 +68,7 @@ def get_parser() -> argparse.ArgumentParser:
     run.add_argument('--high', type=int, default=10)
 
     repl = subparsers.add_parser('repl')
+    repl.add_argument('filename', nargs='?', default=None, help='Dedalus file.')
 
     # TODO(mwhittaker): Add server.
 
