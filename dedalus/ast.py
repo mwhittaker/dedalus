@@ -108,8 +108,79 @@ class Program(NamedTuple):
         return "\n".join(str(rule) for rule in self.rules)
 
     def predicates(self) -> Set[Predicate]:
+        """
+        `program.predicates()` returns the set of all predicates present in
+        `program`. For example, the following program:
+
+            p(#a, b)@0 :- .
+            p(#a, b) :- .
+            q(#a, b) :- .
+            q(X) :- p(X).
+            r(X)@next :- p(X), q(X).
+
+        has predicates `p`, `q`, and `r`.
+        """
         predicates: Set[Predicate] = set()
         for rule in self.rules:
             predicates |= {rule.head.predicate}
             predicates |= {l.atom.predicate for l in rule.body}
         return predicates
+
+    def idb(self) -> Set[Predicate]:
+        """
+        `program.idb()` returns the set of all IDB predicates present in
+        `program`. We define a predicate to be in the IDB if it appears on the
+        left hand side of a rule with a non-empty body. For example, the
+        following program:
+
+            p(#a, b)@0 :- .
+            p(#a, b) :- .
+            q(#a, b) :- .
+            q(X) :- p(X).
+            r(X)@next :- p(X), q(X).
+
+        has idb predicates `q` and `r`.
+        """
+        predicates: Set[Predicate] = set()
+        for rule in self.rules:
+            if len(rule.body) != 0:
+                predicates.add(rule.head.predicate)
+        return predicates
+
+    def edb(self) -> Set[Predicate]:
+        """
+        `program.edb()` returns the set of all EDB predicates present in
+        `program`. We define a predicate to be in the EDB if it's not in the
+        IDB. For example, the following program:
+
+            p(#a, b)@0 :- .
+            p(#a, b) :- .
+            q(#a, b) :- .
+            q(X) :- p(X).
+            r(X)@next :- p(X), q(X).
+
+        has edb predicate `p`.
+        """
+        return self.predicates() - self.idb()
+
+    def persistent_edb(self) -> Set[Predicate]:
+        """
+        `program.persistent_edb()` returns the set of all EDB predicates whose
+        contents are guaranteed to be available at all timesteps.
+        Conservatively, we consider an EDB predicate to be persistent if all of
+        the predicates rules---i.e. the rules in which the predicate is the
+        head---are deductive. For example, consider the following program:
+
+            p(#a, b)@0 :- .
+            p(#a, b) :- .
+            q(#a, b) :- .
+
+        Both `p` and `q` are EDB predicates, but only `q` is persistent. `p` is
+        not persistent because the first rule is not deductive.
+        """
+        not_persistent: Set[Predicate] = set()
+        for rule in self.rules:
+            p = rule.head.predicate
+            if p in self.edb() and not rule.is_deductive():
+                not_persistent.add(p)
+        return self.edb() - not_persistent
