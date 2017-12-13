@@ -9,10 +9,10 @@ from parser import parse
 from repl import repl
 from run import run, spawn
 from typecheck import typecheck
-import ast
+import asts
 
 
-def _parse_from_file(filename: str) -> ast.Program:
+def _parse_from_file(filename: str) -> asts.Program:
     with open(filename, "r") as f:
         return parse(f.read())
 

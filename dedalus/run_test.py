@@ -5,17 +5,17 @@ from desugar import desugar
 from run import Bindings, _eval_rule, _subst, _unify, run, spawn, step
 from typecheck import typecheck
 import parser
-import ast
+import asts
 
 
 class TestRun(unittest.TestCase):
-    def var(self, x: str) -> ast.Variable:
+    def var(self, x: str) -> asts.Variable:
         return parser.variable.parse_strict(x)
 
-    def predicate(self, x: str) -> ast.Predicate:
+    def predicate(self, x: str) -> asts.Predicate:
         return parser.predicate.parse_strict(x)
 
-    def atom(self, x: str) -> ast.Atom:
+    def atom(self, x: str) -> asts.Atom:
         return parser.atom.parse_strict(x)
 
     def test_subst(self) -> None:
@@ -24,7 +24,7 @@ class TestRun(unittest.TestCase):
         Y = self.var('Y')
         Z = self.var('Z')
 
-        GoodTestCase = Tuple[ast.Atom, Bindings, Tuple[Any, ...]]
+        GoodTestCase = Tuple[asts.Atom, Bindings, Tuple[Any, ...]]
         good_test_cases: List[GoodTestCase] = [
             (self.atom('p(a,b,c)'), {}, ('a','b','c')),
             (self.atom('p(a,b,c)'), {X:'x'}, ('a','b','c')),
@@ -40,7 +40,7 @@ class TestRun(unittest.TestCase):
         for atom, bindings, expected in good_test_cases:
             self.assertEqual(_subst(atom, bindings), expected)
 
-        BadTestCase = Tuple[ast.Atom, Bindings]
+        BadTestCase = Tuple[asts.Atom, Bindings]
         bad_test_cases: List[BadTestCase] = [
             (self.atom('p(X)'), {}),
             (self.atom('p(X)'), {Y:'y'}),
@@ -66,7 +66,7 @@ class TestRun(unittest.TestCase):
         z = 'z'
 
         GoodTestCase = Tuple[
-            List[ast.Atom],
+            List[asts.Atom],
             List[Tuple[Any, ...]],
             Optional[Bindings]]
         good_test_cases: List[GoodTestCase] = [
@@ -116,7 +116,7 @@ class TestRun(unittest.TestCase):
         for atoms, tuples, expected in good_test_cases:
             self.assertEqual(_unify(atoms, tuples), expected)
 
-        BadTestCase = Tuple[List[ast.Atom], List[Tuple[Any, ...]]]
+        BadTestCase = Tuple[List[asts.Atom], List[Tuple[Any, ...]]]
         bad_test_cases: List[BadTestCase] = [
             ([self.atom('p(X)')], []),
             ([], [(x,)]),

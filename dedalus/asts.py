@@ -1,6 +1,8 @@
 from enum import Enum
 from typing import List, NamedTuple, NewType, Set, Union
 
+import networkx as nx
+
 
 class Constant(NamedTuple):
     x: str
@@ -208,3 +210,18 @@ class Program(NamedTuple):
                 if p in self.idb() and literal.is_negative():
                     return False
         return True
+
+    def pdg(self) -> nx.DiGraph:
+        g = nx.DiGraph()
+        g.add_nodes_from(self.predicates())
+
+        for rule in self.rules:
+            p = rule.head.predicate
+            for literal in rule.body:
+                q = literal.atom.predicate
+                if p not in g[q]:
+                    g.add_edge(q, p, positive=True)
+                edge = g[q][p]
+                edge['positive'] = edge['positive'] and literal.is_positive()
+
+        return g

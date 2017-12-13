@@ -2,7 +2,7 @@ import re
 
 from parsec import generate, many, many1, regex, sepBy, string, times
 
-import ast
+import asts
 
 # Whitespace and comments.
 whitespace = regex(r'\s+', re.MULTILINE)
@@ -45,17 +45,17 @@ def is_location():
 def constant():
     is_location_ = yield is_location
     x = yield constant_id
-    return ast.Constant(x, is_location_)
+    return asts.Constant(x, is_location_)
 
 @generate
 def variable():
     is_location_ = yield is_location
     x = yield variable_id
-    return ast.Variable(x, is_location_)
+    return asts.Variable(x, is_location_)
 
 term = constant ^ variable
 
-predicate = predicate_id.parsecmap(ast.Predicate)
+predicate = predicate_id.parsecmap(asts.Predicate)
 
 @generate
 def atom():
@@ -63,7 +63,7 @@ def atom():
     yield lparen
     terms = yield sepBy(term, comma)
     yield rparen
-    return ast.Atom(predicate_, terms)
+    return asts.Atom(predicate_, terms)
 
 @generate
 def literal():
@@ -71,11 +71,11 @@ def literal():
     assert len(bangs) in [0, 1]
     negative = True if len(bangs) == 1 else False
     atom_ = yield atom
-    return ast.Literal(negative, atom_)
+    return asts.Literal(negative, atom_)
 
-inductive_rule = at >> next_.parsecmap(lambda _: ast.InductiveRule())
-async_rule = at >> async.parsecmap(lambda _: ast.AsyncRule())
-constant_time_rule = at >> number.parsecmap(ast.ConstantTimeRule)
+inductive_rule = at >> next_.parsecmap(lambda _: asts.InductiveRule())
+async_rule = at >> async.parsecmap(lambda _: asts.AsyncRule())
+constant_time_rule = at >> number.parsecmap(asts.ConstantTimeRule)
 non_deductive_rule = inductive_rule ^ async_rule ^ constant_time_rule
 
 @generate
@@ -85,7 +85,7 @@ def rule_type():
     if len(rule_types) == 1:
         return rule_types[0]
     else:
-        return ast.DeductiveRule()
+        return asts.DeductiveRule()
 
 @generate
 def rule():
@@ -94,11 +94,11 @@ def rule():
     yield turnstyle
     body = yield sepBy(literal, comma)
     yield period
-    return ast.Rule(head, rule_type_, body)
+    return asts.Rule(head, rule_type_, body)
 
-program = many1(rule).parsecmap(ast.Program)
+program = many1(rule).parsecmap(asts.Program)
 
 parser = ignore >> program
 
-def parse(s: str) -> ast.Program:
+def parse(s: str) -> asts.Program:
     return parser.parse_strict(s)

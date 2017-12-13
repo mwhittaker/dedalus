@@ -1,11 +1,11 @@
 import copy
 
-import ast
+import asts
 
-def _atom_contains_location(atom: ast.Atom) -> bool:
+def _atom_contains_location(atom: asts.Atom) -> bool:
     return any(term.is_location for term in atom.terms)
 
-def desugar(program: ast.Program) -> ast.Program:
+def desugar(program: asts.Program) -> asts.Program:
     program = copy.deepcopy(program)
 
     # If a rule doesn't have any explicit location specifiers, then we inject a
@@ -26,7 +26,7 @@ def desugar(program: ast.Program) -> ast.Program:
         atoms = [rule.head] + [literal.atom for literal in rule.body]
         if any(_atom_contains_location(atom) for atom in atoms):
             continue
-        L = ast.Variable("_L", is_location=True)
+        L = asts.Variable("_L", is_location=True)
         for atom in atoms:
             atom.terms.insert(0, L)
 

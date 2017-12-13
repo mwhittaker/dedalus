@@ -1,9 +1,9 @@
 from typing import Dict
 
-import ast
+import asts
 
 
-def _fixed_arities(program: ast.Program):
+def _fixed_arities(program: asts.Program):
     """
     The arity of every predicate in a dedalus program must be fixed. For
     example, the following program is ill-formed because `p` has both arity 1
@@ -22,7 +22,7 @@ def _fixed_arities(program: ast.Program):
             else:
                 arities[p] = arity
 
-def _range_restricted(program: ast.Program):
+def _range_restricted(program: asts.Program):
     """
     A dedalus rule is range restricted if (1) every variable in the head of the
     rule appears in some positive literal in the body and (2) every variable in
@@ -36,7 +36,7 @@ def _range_restricted(program: ast.Program):
 
       p(X) :- !q(Y), r(Z).
     """
-    def range_restricted_rule(rule: ast.Rule):
+    def range_restricted_rule(rule: asts.Rule):
         positive_atoms = [l.atom for l in rule.body if l.is_positive()]
         negative_atoms = [l.atom for l in rule.body if l.is_negative()]
         head_vars = {v.x for v in rule.head.variables()}
@@ -60,7 +60,7 @@ def _range_restricted(program: ast.Program):
     for rule in program.rules:
         range_restricted_rule(rule)
 
-def _timestamp_restricted(program: ast.Program):
+def _timestamp_restricted(program: asts.Program):
     """
     A dedalus rule is timestamp restricted if constant time rules have empty
     bodies. For example, the following rules are timestamp restricted:
@@ -78,7 +78,7 @@ def _timestamp_restricted(program: ast.Program):
             msg = f'The constant time rule "{rule}" has a non-empty body.'
             raise ValueError(msg)
 
-def _location_restricted(program: ast.Program):
+def _location_restricted(program: asts.Program):
     """
     A dedalus rule is location restricted if
 
@@ -102,7 +102,7 @@ def _location_restricted(program: ast.Program):
       p(#Y) :- q(#X, Y), r(#X, Y).
       p(#Y)@next :- q(#X, Y), r(#X, Y).
     """
-    def location_restricted_rule(rule: ast.Rule):
+    def location_restricted_rule(rule: asts.Rule):
         for atom in [rule.head] + [l.atom for l in rule.body]:
             if len(atom.terms) == 0:
                 msg = (f'Atom {atom} of rule "{rule}" does not have a '
@@ -136,14 +136,14 @@ def _location_restricted(program: ast.Program):
     for rule in program.rules:
         location_restricted_rule(rule)
 
-def typecheck(program: ast.Program) -> ast.Program:
+def typecheck(program: asts.Program) -> asts.Program:
     _fixed_arities(program)
     _range_restricted(program)
     _timestamp_restricted(program)
     _location_restricted(program)
     return program
 
-def typechecks(program: ast.Program) -> bool:
+def typechecks(program: asts.Program) -> bool:
     try:
         typecheck(program)
         return True

@@ -4,10 +4,10 @@ import unittest
 from desugar import desugar
 from typecheck import typecheck
 import parser
-import ast
+import asts
 
-class TestAst(unittest.TestCase):
-    def predicate(self, x: str) -> ast.Predicate:
+class TestAsts(unittest.TestCase):
+    def predicate(self, x: str) -> asts.Predicate:
         return parser.predicate.parse_strict(x)
 
     def test_program_predicates(self) -> None:

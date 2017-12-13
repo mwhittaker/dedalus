@@ -6,19 +6,19 @@ from typing import (Any, Callable, DefaultDict, Dict, Generator, List,
                     NamedTuple, Optional, Set, Tuple)
 import random
 
-import ast
+import asts
 
 
 Relation = Set[Tuple[Any, ...]]
-Database = Dict[ast.Predicate, Relation]
-DefaultDatabase = DefaultDict[ast.Predicate, Relation]
+Database = Dict[asts.Predicate, Relation]
+DefaultDatabase = DefaultDict[asts.Predicate, Relation]
 AsyncBuffer = DefaultDict[int, DefaultDatabase]
-Bindings = Dict[ast.Variable, str]
+Bindings = Dict[asts.Variable, str]
 RandInt = Callable[[], int]
 
 
 class Process(NamedTuple):
-    program: ast.Program
+    program: asts.Program
     timestep: int
     database: Database
     async_buffer: AsyncBuffer
@@ -44,13 +44,13 @@ class Process(NamedTuple):
 
         return f"{timestep}\n\n\n{database}\n\n\n{async_buffer}"
 
-def _empty_database(program: ast.Program) -> Database:
+def _empty_database(program: asts.Program) -> Database:
     return {p: set() for p in program.predicates()}
 
 def _empty_default_database() -> DefaultDatabase:
     return defaultdict(set)
 
-def _subst(atom: ast.Atom, bindings: Bindings) -> Tuple[Any, ...]:
+def _subst(atom: asts.Atom, bindings: Bindings) -> Tuple[Any, ...]:
     """
     `_subst` performs variable substituion in `atom` according to the variable
     bindings in `bindings`. If `atom` contains unbound variables, an exception
@@ -64,15 +64,15 @@ def _subst(atom: ast.Atom, bindings: Bindings) -> Tuple[Any, ...]:
     """
     values = []
     for term in atom.terms:
-        if isinstance(term, ast.Constant):
+        if isinstance(term, asts.Constant):
             values.append(term.x)
         else:
-            assert isinstance(term, ast.Variable)
+            assert isinstance(term, asts.Variable)
             assert term in bindings
             values.append(bindings[term])
     return tuple(values)
 
-def _unify(atoms: List[ast.Atom],
+def _unify(atoms: List[asts.Atom],
            tuples: List[Tuple[Any, ...]]) \
            -> Optional[Bindings]:
     """
@@ -97,18 +97,18 @@ def _unify(atoms: List[ast.Atom],
     for (atom, tuple_) in zip(atoms, tuples):
         assert len(atom.terms) == len(tuple_), (atom, tuple_)
         for (term, value) in zip(atom.terms, tuple_):
-            if isinstance(term, ast.Constant):
+            if isinstance(term, asts.Constant):
                 if term.x != value:
                     return None
             else:
-                assert isinstance(term, ast.Variable)
+                assert isinstance(term, asts.Variable)
                 if term in bindings and bindings[term] != value:
                     return None
                 bindings[term] = value
     return bindings
 
 def _eval_rule(process: Process,
-               rule: ast.Rule) \
+               rule: asts.Rule) \
                -> Generator[Tuple[Any, ...], None, None]:
     """
     `_eval_rule(process, rule)` generates all the tuples produced by evaluating
@@ -137,7 +137,7 @@ def _eval_rule(process: Process,
 
         yield _subst(rule.head, bindings)
 
-def spawn(program: ast.Program, randint: RandInt = None) -> Process:
+def spawn(program: asts.Program, randint: RandInt = None) -> Process:
     """Spawn a program into a process."""
     database = _empty_database(program)
     async_buffer: AsyncBuffer = defaultdict(_empty_default_database)
@@ -150,7 +150,7 @@ def step(process: Process) -> Process:
 
     def is_constant_rule(rule):
         rule_type = rule.rule_type
-        if isinstance(rule.rule_type, ast.ConstantTimeRule):
+        if isinstance(rule.rule_type, asts.ConstantTimeRule):
             return rule_type.time == process.timestep
         else:
             return False

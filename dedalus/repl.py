@@ -6,12 +6,12 @@ import traceback
 from desugar import desugar
 from parser import parse
 from typecheck import typecheck, typechecks
-import ast
+import asts
 import run
 
 
 class ReplState(NamedTuple):
-    program: Optional[ast.Program]
+    program: Optional[asts.Program]
     process: Optional[run.Process]
 
 class Help(NamedTuple):
