@@ -184,3 +184,27 @@ class Program(NamedTuple):
             if p in self.edb() and not rule.is_deductive():
                 not_persistent.add(p)
         return self.edb() - not_persistent
+
+    def is_positive(self) -> bool:
+        """
+        `program.is_positive()` returns True if `program` is a positive datalog
+        program. A datalog program is positive if all of its literals are
+        positive.
+        """
+        for rule in self.rules:
+            if any(literal.is_negative() for literal in rule.body):
+                return False
+        return True
+
+    def is_semipositive(self) -> bool:
+        """
+        `program.is_positive()` returns True if `program` is a semipositive
+        datalog program. A datalog program is semipositive if the only negated
+        literals are on EDB predicates.
+        """
+        for rule in self.rules:
+            for literal in rule.body:
+                p = literal.atom.predicate
+                if p in self.idb() and literal.is_negative():
+                    return False
+        return True

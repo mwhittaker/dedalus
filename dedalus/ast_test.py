@@ -73,5 +73,46 @@ class TestAst(unittest.TestCase):
             expected = {self.predicate(p) for p in predicates}
             self.assertEqual(program.persistent_edb(), expected)
 
+    def test_program_is_positive(self) -> None:
+        positive_programs: List[str] = [
+            'p(#a) :- .',
+            'p(X) :- q(X), r(X).',
+            r"""p(X) :- q(X), r(X).
+                p(Y) :- r(Y), r(X).""",
+        ]
+        for source in positive_programs:
+            program = typecheck(desugar(parser.parse(source)))
+            self.assertTrue(program.is_positive())
+
+        negative_programs: List[str] = [
+            'p(X) :- q(X), !r(X).',
+            r"""p(X) :- q(X).
+                p(X) :- q(X), !r(X).""",
+        ]
+        for source in negative_programs:
+            program = typecheck(desugar(parser.parse(source)))
+            self.assertFalse(program.is_positive())
+
+    def test_program_is_semipositive(self) -> None:
+        semipositive_programs: List[str] = [
+            'p(#a) :- .',
+            'p(X) :- q(X), r(X).',
+            r"""p(X) :- q(X), r(X).
+                p(Y) :- r(Y), r(X).""",
+            r"""p(#a, b) :- .
+                q(X) :- q(X), !p(X).""",
+        ]
+        for source in semipositive_programs:
+            program = typecheck(desugar(parser.parse(source)))
+            self.assertTrue(program.is_semipositive())
+
+        not_semipositive_programs: List[str] = [
+            r"""r(X) :- q(X).
+                p(X) :- q(X), !r(X).""",
+        ]
+        for source in not_semipositive_programs:
+            program = typecheck(desugar(parser.parse(source)))
+            self.assertFalse(program.is_semipositive())
+
 if __name__ == '__main__':
     unittest.main()
