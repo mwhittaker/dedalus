@@ -51,6 +51,17 @@ def _empty_default_database() -> DefaultDatabase:
     return defaultdict(set)
 
 def _subst(atom: ast.Atom, bindings: Bindings) -> Tuple[Any, ...]:
+    """
+    `_subst` performs variable substituion in `atom` according to the variable
+    bindings in `bindings`. If `atom` contains unbound variables, an exception
+    is thrown. Some examples:
+
+        bindings = {W: 'w', X: 'x', Y: 'y', Z: 'z'}
+        _subst(p(X, Y, Z), bindings) == ('x', 'y', 'z')
+        _subst(p(a, Y, Z), bindings) == ('a', 'y', 'z')
+        _subst(p(a, b, Z), bindings) == ('a', 'b', 'z')
+        _subst(p(a, b, c), bindings) == ('a', 'b', 'c')
+    """
     values = []
     for term in atom.terms:
         if isinstance(term, ast.Constant):
@@ -64,6 +75,23 @@ def _subst(atom: ast.Atom, bindings: Bindings) -> Tuple[Any, ...]:
 def _unify(atoms: List[ast.Atom],
            tuples: List[Tuple[Any, ...]]) \
            -> Optional[Bindings]:
+    """
+    Consider the following rule which finds all the trianges in a graph `g`:
+
+        triangles(X, Y, Z) :- g(X, Y), g(Y, Z), g(Z, A).
+
+    Imagine we try to instantiate the body of the rule with the tuples (a, b),
+    (b, c), and (c, a). In this case, the instantiation can succeed: X binds to
+    a, Y binds to b, and Z binds to c.
+
+    Now imagine we try to instantiate the body of the rule with the tuples (a,
+    b), (b, c), (c, d). In this case, the instantiation fails. X must be both a
+    and d which is impossible.
+
+    `_unify` attempts to instantiate a set of atoms with the provided set of
+    tuples. If the instantiation suceeds, the bindings produced are returned.
+    If the instantiation fails, None is returned.
+    """
     bindings: Bindings = {}
     assert len(atoms) == len(tuples), (atoms, tuples)
     for (atom, tuple_) in zip(atoms, tuples):
@@ -82,6 +110,16 @@ def _unify(atoms: List[ast.Atom],
 def _eval_rule(process: Process,
                rule: ast.Rule) \
                -> Generator[Tuple[Any, ...], None, None]:
+    """
+    `_eval_rule(process, rule)` generates all the tuples produced by evaluating
+    the rule. For example, given the following rule:
+
+        triangles(X, Y, Z) :- g(X, Y), g(Y, Z), g(Z, X).
+
+    and a fully connected graph `g` on vertices a, b, and c, `_eval_rule` would
+    return the tuples (a, b, c), (b, c, a), (c, a, b), (a, c, b), (c, b, a),
+    and (b, a, c).
+    """
     positive_atoms = [l.atom for l in rule.body if l.is_positive()]
     negative_atoms = [l.atom for l in rule.body if l.is_negative()]
     positive_predicates = [atom.predicate for atom in positive_atoms]
@@ -100,12 +138,14 @@ def _eval_rule(process: Process,
         yield _subst(rule.head, bindings)
 
 def spawn(program: ast.Program, randint: RandInt = None) -> Process:
+    """Spawn a program into a process."""
     database = _empty_database(program)
     async_buffer: AsyncBuffer = defaultdict(_empty_default_database)
     randint = randint or (lambda: random.randint(1, 10))
     return Process(program, 0, database, async_buffer, randint)
 
 def step(process: Process) -> Process:
+    """Perform a single step of a Dedalus program."""
     process = deepcopy(process)
 
     def is_constant_rule(rule):
@@ -161,6 +201,7 @@ def step(process: Process) -> Process:
     return process
 
 def run(process: Process, timesteps: int) -> Process:
+    """Perform multiple steps of a Dedalus program."""
     for _ in range(timesteps):
         process = step(process)
     return process
