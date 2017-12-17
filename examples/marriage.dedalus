@@ -1,0 +1,7 @@
+i_do_edb(#a, bride) :- .
+i_do_edb(#a, groom) :- .
+
+i_do(X)@async :- i_do_edb(X).
+i_do(X)@next :- i_do(X).
+runaway() :- !i_do(bride), i_do(groom).
+runaway() :- !i_do(groom), i_do(bride).
