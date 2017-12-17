@@ -257,3 +257,23 @@ class Program(NamedTuple):
         # cycle contains only positive edges. Thus, removing the negative edges
         # does not reduce the number of cycles.
         return num_cycles == num_positive_cycles
+
+    def has_guarded_asynchrony(self) -> bool:
+        """
+        `program.has_guarded_asynchrony()` returns whether `program` has
+        guarded asynchrony. A dedalus program has guarded asynchrony if for
+        every predicate `p` at the head of an asynchronous rule, there is a
+        persitence rule of the form `p(X, Y, Z)@next :- p(X, Y, Z)`.
+        """
+        async_rules = [rule for rule in self.rules if rule.is_async()]
+        async_predicates = {rule.head.predicate for rule in async_rules}
+
+        guarded_predicates: Set[Predicate] = set()
+        for rule in self.rules:
+            if (rule.head.predicate in async_predicates and
+                rule.is_inductive() and
+                len(rule.body) == 1 and
+                rule.head.terms == rule.body[0].atom.terms):
+                guarded_predicates.add(rule.head.predicate)
+
+        return async_predicates == guarded_predicates

@@ -176,5 +176,38 @@ class TestAsts(unittest.TestCase):
             program = typecheck(desugar(parser.parse(source)))
             self.assertFalse(program.is_stratified())
 
+    def test_program_has_guarded_asynchrony(self) -> None:
+        guarded_async_programs: List[str] = [
+            'p(#a) :- .',
+            'p(X) :- p(X).',
+            'p(X)@next :- p(X).',
+            r"""p(X)@async :- p(X).
+                p(X)@next :- p(X).""",
+            r"""p(X, Y, Z)@async :- p(X, Y, Z).
+                p(X, Y, Z)@next :- p(X, Y, Z).""",
+            r"""p(X)@async :- p(X).
+                q(X, Y)@async :- q(X, Y).
+                r(X, Y, Z)@async :- r(X, Y, Z).
+                p(X)@next :- p(X).
+                q(X, Y)@next :- q(X, Y).
+                r(X, Y, Z)@next :- r(X, Y, Z).""",
+        ]
+        for source in guarded_async_programs:
+            program = typecheck(desugar(parser.parse(source)))
+            self.assertTrue(program.has_guarded_asynchrony())
+
+        not_guarded_async_programs: List[str] = [
+            'p(X)@async :- p(X).',
+            'p(X, Y, Z)@async :- p(X, Y, Z).',
+            r"""p(X)@async :- p(X).
+                q(X, Y)@async :- q(X, Y).
+                r(X, Y, Z)@async :- r(X, Y, Z).
+                p(X)@next :- p(X).
+                r(X, Y, Z)@next :- r(X, Y, Z).""",
+        ]
+        for source in not_guarded_async_programs:
+            program = typecheck(desugar(parser.parse(source)))
+            self.assertFalse(program.has_guarded_asynchrony(), source)
+
 if __name__ == '__main__':
     unittest.main()
