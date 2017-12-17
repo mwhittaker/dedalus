@@ -1,0 +1,13 @@
+node(#n) :- .
+
+p(#n, 1) :- .
+p(#n, 2) :- .
+p(#n, 3) :- .
+
+q(#n, 1) :- .
+q(#n, 2) :- .
+q(#n, 3) :- .
+q(#n, 4) :- .
+
+not_subset() :- p(X), !q(X).
+subset() :- node(), !not_subset().
