@@ -277,3 +277,13 @@ class Program(NamedTuple):
                 guarded_predicates.add(rule.head.predicate)
 
         return async_predicates == guarded_predicates
+
+    def is_dedalus_s(self) -> bool:
+        """
+        `program.is_dedalus_s()` returns whether `program` is a Dedalus^S
+        program: a Dedalus program with persistent edb, guarded asynchrony, and
+        a stratified PDG.
+        """
+        return (self.edb() == self.persistent_edb() and
+                self.is_stratified() and
+                self.has_guarded_asynchrony())
