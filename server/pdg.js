@@ -20,6 +20,9 @@ function new_graph(elements) {
           'line-color': function(edge) {
             return edge.data('negative') ? '#ff6961' : '#ccc';
           },
+          'line-style': function(edge) {
+            return edge.data('async') ? 'dashed' : 'solid';
+          },
           'target-arrow-color': function(edge) {
             return edge.data('negative') ? '#ff6961' : '#ccc';
           },
@@ -51,6 +54,7 @@ function json_to_elements(json) {
       group: 'edges',
       data: {
         negative: edge.negative,
+        async: edge.async,
         source: edge.source[0],
         target: edge.target[0],
       },
