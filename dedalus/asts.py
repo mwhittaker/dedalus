@@ -232,3 +232,15 @@ class Program(NamedTuple):
                 edge['negative'] = edge['negative'] or literal.is_negative()
 
         return g
+
+    def is_stratified(self) -> bool:
+        pdg = self.pdg()
+        num_cycles = len(list(nx.simple_cycles(pdg)))
+
+        pdg_copy = pdg.copy()
+        edges = pdg_copy.edges
+        negative_edges = [edge for edge in edges if edges[edge]['negative']]
+        pdg_copy.remove_edges_from(negative_edges)
+        num_positive_cycles = len(list(nx.simple_cycles(pdg_copy)))
+
+        return num_cycles == num_positive_cycles

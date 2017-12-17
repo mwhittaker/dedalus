@@ -114,5 +114,67 @@ class TestAsts(unittest.TestCase):
             program = typecheck(desugar(parser.parse(source)))
             self.assertFalse(program.is_semipositive())
 
+    def test_program_is_stratified(self) -> None:
+        stratified_programs: List[str] = [
+            'p(#a) :- .',
+            'p(X) :- q(X).',
+            'p(X) :- p(X).',
+            r"""b() :- a().
+                c() :- b().
+                a() :- c().""",
+            r"""a() :- b(), c().
+                b() :- a(), c().
+                c() :- a(), b().""",
+            r"""b(X) :- p(X), !a(X).
+                c(X) :- p(X), !b(X).""",
+            r"""b(X) :- p(X), a(X).
+                c(X) :- p(X), b(X).
+                a(X) :- p(X), c(X).
+
+                d(X) :- p(X), !c(X).
+
+                e(X) :- p(X), d(X).
+                f(X) :- p(X), e(X).
+                d(X) :- p(X), f(X).""",
+            r"""b(X) :- p(X), a(X).
+                c(X) :- p(X), b(X).
+                c(X) :- p(X), !a(X).
+                d(X) :- p(X), c(X)."""
+        ]
+        for source in stratified_programs:
+            program = typecheck(desugar(parser.parse(source)))
+            self.assertTrue(program.is_stratified())
+
+        not_stratified_programs: List[str] = [
+            r"""a(X) :- p(X), !b(X).
+                b(X) :- p(X), !a(X).""",
+            r"""a(X) :- p(X), !b(X).
+                b(X) :- p(X), a(X).""",
+            r"""a(X) :- p(X), !b(X).
+                b(X) :- p(X), c(X).
+                c(X) :- p(X), a(X).""",
+            r"""a(X) :- p(X), !b(X).
+                b(X) :- p(X), c(X).
+                c(X) :- p(X), a(X).""",
+            r"""b(X) :- p(X), !a(X).
+                c(X) :- p(X), b(X).
+                c(X) :- p(X), !a(X).
+                d(X) :- p(X), c(X).
+                a(X) :- p(X), d(X).""",
+            r"""b(X) :- p(X), a(X).
+                c(X) :- p(X), b(X).
+                a(X) :- p(X), c(X).
+
+                d(X) :- p(X), !c(X).
+                a(X) :- p(X), !f(x).
+
+                e(X) :- p(X), d(X).
+                f(X) :- p(X), e(X).
+                d(X) :- p(X), f(X).""",
+        ]
+        for source in not_stratified_programs:
+            program = typecheck(desugar(parser.parse(source)))
+            self.assertFalse(program.is_stratified())
+
 if __name__ == '__main__':
     unittest.main()
