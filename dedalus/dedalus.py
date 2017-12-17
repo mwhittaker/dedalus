@@ -2,7 +2,10 @@
 
 from typing import Callable
 import argparse
+import json
 import random
+
+import networkx as nx
 
 from desugar import desugar
 from parser import parse
@@ -27,6 +30,12 @@ def _desugar(filename: str) -> None:
 def _typecheck(filename: str) -> None:
     typecheck(desugar(_parse_from_file(filename)))
 
+def _pdg(filename: str) -> None:
+    program = typecheck(desugar(_parse_from_file(filename)))
+    pdg = program.pdg()
+    pdg_json = nx.node_link_data(pdg)
+    print(json.dumps(pdg_json, indent=4))
+
 def _run(filename: str, timesteps: int, randint: Callable[[], int]) -> None:
     program = _parse_from_file(filename)
     program = desugar(program)
@@ -42,6 +51,8 @@ def main(args: argparse.Namespace) -> None:
         _desugar(args.filename)
     elif args.subcommand == 'typecheck':
         _typecheck(args.filename)
+    elif args.subcommand == 'pdg':
+        _pdg(args.filename)
     elif args.subcommand == 'run':
         assert 1 <= args.low <= args.high
         randint = lambda: random.randint(args.low, args.high)
@@ -56,7 +67,7 @@ def get_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest='subcommand')
     subparsers.required = True # type: ignore
 
-    subparser_names = ['parse', 'desugar', 'typecheck']
+    subparser_names = ['parse', 'desugar', 'typecheck', 'pdg']
     for subparser_name in subparser_names:
         subparser = subparsers.add_parser(subparser_name)
         subparser.add_argument("filename", help="Dedalus file.")

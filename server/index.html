@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>PDG</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="container">
+    <div id="app">
+      <div id="input">
+        <textarea v-model="input"></textarea>
+      </div>
+      <div id="update_pdg">
+        <button v-on:click="update_pdg">Update PDG</button>
+      </div>
+      <div id="pdg"></div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.11/vue.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.2.7/cytoscape.js"></script>
+  <script src="pdg.js"></script>
+</body>
+</html>

@@ -212,6 +212,13 @@ class Program(NamedTuple):
         return True
 
     def pdg(self) -> nx.DiGraph:
+        """
+        `program.pdg()` Returns the predicate dependency graph (PDG) of
+        `program`. Vertices in the PDG are predicates in the program. There is
+        an edge from predicate p to predicate q if there exists a rule of the
+        form `p :- ..., q, ...`. The edge is labelled `negative` if `q` is
+        negative.
+        """
         g = nx.DiGraph()
         g.add_nodes_from(self.predicates())
 
@@ -220,8 +227,8 @@ class Program(NamedTuple):
             for literal in rule.body:
                 q = literal.atom.predicate
                 if p not in g[q]:
-                    g.add_edge(q, p, positive=True)
+                    g.add_edge(q, p, negative=False)
                 edge = g[q][p]
-                edge['positive'] = edge['positive'] and literal.is_positive()
+                edge['negative'] = edge['negative'] or literal.is_negative()
 
         return g
