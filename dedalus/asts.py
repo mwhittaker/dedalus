@@ -282,8 +282,10 @@ class Program(NamedTuple):
         """
         `program.is_dedalus_s()` returns whether `program` is a Dedalus^S
         program: a Dedalus program with persistent edb, guarded asynchrony, and
-        a stratified PDG.
+        a stratified PDG. We also disallow constant time rules.
         """
+        constant_time_rules = [r for r in self.rules if r.is_constant_time()]
         return (self.edb() == self.persistent_edb() and
-                self.is_stratified() and
-                self.has_guarded_asynchrony())
+                self.has_guarded_asynchrony() and
+                len(constant_time_rules) == 0 and
+                self.is_stratified())
