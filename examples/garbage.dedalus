@@ -1,0 +1,10 @@
+// Appendix B of [1].
+// [1]: https://www2.eecs.berkeley.edu/Pubs/TechRpts/2012/EECS-2012-171.pdf
+
+addr(Addr)@async :- addr_edb(Addr).
+refers_to(#M, Src, Dst)@async :- local_ptr_edb(#N, Src, Dst), master(#N, M).
+refers_to(Src, Dst)@next :- refers_to(Src, Dst).
+reach(Src, Dst) :- refers_to(Src, Dst).
+reach(Src, Next) :- reach(Src, Dst), refers_to(Dst, Next).
+garbage(Addr) :- addr(Addr), root_edb(Root), !reach(Root, Addr).
+garbage(Addr)@next :- garbage(Addr).
