@@ -30,6 +30,10 @@ def _desugar(filename: str) -> None:
 def _typecheck(filename: str) -> None:
     typecheck(desugar(_parse_from_file(filename)))
 
+def _is_dedalus_s(filename: str) -> None:
+    program = typecheck(desugar(_parse_from_file(filename)))
+    print(program.is_dedalus_s())
+
 def _pdg(filename: str) -> None:
     program = typecheck(desugar(_parse_from_file(filename)))
     pdg = program.pdg()
@@ -53,6 +57,8 @@ def main(args: argparse.Namespace) -> None:
         _typecheck(args.filename)
     elif args.subcommand == 'pdg':
         _pdg(args.filename)
+    elif args.subcommand == 'is_dedalus_s':
+        _is_dedalus_s(args.filename)
     elif args.subcommand == 'run':
         assert 1 <= args.low <= args.high
         randint = lambda: random.randint(args.low, args.high)
@@ -67,7 +73,7 @@ def get_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest='subcommand')
     subparsers.required = True # type: ignore
 
-    subparser_names = ['parse', 'desugar', 'typecheck', 'pdg']
+    subparser_names = ['parse', 'desugar', 'typecheck', 'pdg', 'is_dedalus_s']
     for subparser_name in subparser_names:
         subparser = subparsers.add_parser(subparser_name)
         subparser.add_argument("filename", help="Dedalus file.")
