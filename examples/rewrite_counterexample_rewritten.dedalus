@@ -38,3 +38,28 @@ r11_done() :- counter_done().
 r_done() :- r11_done(), r12_done().
 r11_done() :- p_done().
 r11_done() :- p_done().
+
+
+// ## Step 1
+// First, we add `p_done()` to the body of any rule with literal `!p(X...)`.
+//
+// ## Step 2
+// Second, we defined `p_done()` for every predicate `p`.
+//
+// - Case 1: `p` is an EDB predicate.
+//   - Add the rule `p_done(#a) :- .` for every node `a`.
+// - Case 2: `p` is an IDB predicate in a non-async recursive node.
+//   - Add the rule `p_done() :- r1_done(), ..., rn_done().` where `p` is the
+//     head of rules `r1`, ..., `rn`.
+//   - Define `ri_done()` as follows:
+//     - Case 1: `ri` is deductive.
+//       - Add the rule `ri_done() :- q1_done(), ..., qm_done().` where `q1`,
+//         ..., `qm` are the predicates in the nodes in the collapsed PDG that
+//         are pointing into this node.
+//     - Case 2: `ri` is inductive.
+//       - Unspecified, but from appendix C, it seems like we either ignore
+//         inductive rules or treat them like deductive rules.
+//     - Case 3: `ri` is async.
+//       - Use acks to ensure that all messages have been sent. See appendix D.
+// - Case 3: `p` is an IDB predicate in an async-recursive node.
+//   - See paper. It's complicated.
