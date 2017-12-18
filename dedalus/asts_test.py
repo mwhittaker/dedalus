@@ -1,6 +1,8 @@
 from typing import List, Set, Tuple
 import unittest
 
+import networkx as nx
+
 from desugar import desugar
 from typecheck import typecheck
 import parser
@@ -113,6 +115,25 @@ class TestAsts(unittest.TestCase):
         for source in not_semipositive_programs:
             program = typecheck(desugar(parser.parse(source)))
             self.assertFalse(program.is_semipositive())
+
+    def test_program_deductive_pdg(self) -> None:
+        source = r"""
+          a(X) :- b(X), d(X).
+          b(X) :- c(X), e(X).
+          c(X) :- a(X).
+          d(X)@next :- a(X), b(X), c(X).
+          e(X)@async :- a(X), b(X), c(X).
+          a(X)@next :- a(X).
+          a(X)@async :- a(X).
+        """
+        program = typecheck(desugar(parser.parse(source)))
+        dpdg = program.deductive_pdg()
+
+        expected = nx.DiGraph()
+        expected.add_nodes_from(['a', 'b', 'c'])
+        expected.add_edges_from([('b', 'a'), ('c', 'b'), ('a', 'c')])
+
+        self.assertTrue(nx.is_isomorphic(dpdg, expected))
 
     def test_program_is_stratified(self) -> None:
         stratified_programs: List[str] = [

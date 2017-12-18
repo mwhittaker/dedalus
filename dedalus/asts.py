@@ -213,7 +213,7 @@ class Program(NamedTuple):
 
     def pdg(self) -> nx.DiGraph:
         """
-        `program.pdg()` Returns the predicate dependency graph (PDG) of
+        `program.pdg()` returns the predicate dependency graph (PDG) of
         `program`. Vertices in the PDG are predicates in the program. There is
         an edge from predicate p to predicate q if there exists a rule of the
         form `p :- ..., q, ...`. The edge is labelled `negative` if `q` is
@@ -231,6 +231,30 @@ class Program(NamedTuple):
                 edge = g[q][p]
                 edge['negative'] = edge['negative'] or literal.is_negative()
                 edge['async'] = edge['async'] or rule.is_async()
+
+        return g
+
+    def deductive_pdg(self) -> nx.DiGraph:
+        """
+        `program.deductive_pdg()` returns the PDG for the deductive rules of
+        dedalus program `program`.
+        """
+        deductive_rules = [rule for rule in self.rules if rule.is_deductive()]
+        deductive_predicates = {rule.head.predicate for rule in deductive_rules}
+
+        g = nx.DiGraph()
+        g.add_nodes_from(deductive_predicates)
+        for rule in deductive_rules:
+            p = rule.head.predicate
+            for literal in rule.body:
+                q = literal.atom.predicate
+                if q not in deductive_predicates:
+                    continue
+
+                if p not in g[q]:
+                    g.add_edge(q, p, negative=False)
+                edge = g[q][p]
+                edge['negative'] = edge['negative'] or literal.is_negative()
 
         return g
 
