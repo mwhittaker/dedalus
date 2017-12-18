@@ -1,0 +1,14 @@
+counter_init(#l, 1) :- .
+counter(X) :- counter_init(X).
+counter(2)@next :- counter(1).
+counter(3)@next :- counter(2).
+counter(4)@next :- counter(3).
+counter(5)@next :- counter(4).
+counter(6)@next :- counter(5).
+counter(7)@next :- counter(6).
+
+p(1)@async :- counter(1).
+p(7)@async :- counter(7).
+p(X)@next :- p(X).
+r(42) :- p(1), !p(7).
+r(X)@next :- r(X).

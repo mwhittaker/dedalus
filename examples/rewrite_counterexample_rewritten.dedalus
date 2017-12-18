@@ -1,0 +1,40 @@
+counter_init(#l, 1) :- .        // r1
+counter(X) :- counter_init(X).  // r2
+counter(2)@next :- counter(1).  // r3
+counter(3)@next :- counter(2).  // r4
+counter(4)@next :- counter(3).  // r5
+counter(5)@next :- counter(4).  // r6
+counter(6)@next :- counter(5).  // r7
+counter(7)@next :- counter(6).  // r8
+
+p(1)@async :- counter(1).       // r9
+p(7)@async :- counter(7).       // r10
+p(X)@next :- p(X).              // r11
+r(42) :- p(1), !p(7), p_done(). // r12
+r(X)@next :- r(X).              // r13
+
+
+// counter_init
+counter_init_done(#l) :- .
+
+// counter
+counter_done() :- r2_done(), r3_done(), r4_done(), r5_done(), r6_done(),
+                  r7_done(), r8_done().
+r2_done() :- counter_init_done().
+r3_done() :- counter_init_done().
+r4_done() :- counter_init_done().
+r5_done() :- counter_init_done().
+r6_done() :- counter_init_done().
+r7_done() :- counter_init_done().
+r8_done() :- counter_init_done().
+
+// p
+p_done() :- r9_done(), r10_done(), r11_done().
+r9_done() :- appendix_d().
+r10_done() :- appendix_d().
+r11_done() :- counter_done().
+
+// r
+r_done() :- r11_done(), r12_done().
+r11_done() :- p_done().
+r11_done() :- p_done().
