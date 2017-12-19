@@ -1,0 +1,31 @@
+// A Dedalus program is a Dedalus^S program if it satisfies the following
+// properties:
+//
+//   1. EDB at all timesteps.
+//   2. No constant time rules.
+//   3. Guarded asynchrony.
+//   4. Stratified PDG.
+
+// A Dedalus^S program's EDB must exist at all timesteps. For example, the
+// following line establishes an EDB fact that is true at all timesteps:
+an_edb_relation(#l, foo) :- .
+
+// The following constant time rule establishes an EDB fact at only certain
+// timesteps and is forbidden.
+another_edb_relation(#l, foo)@42 :- . // ILLEGAL
+
+// For simplicity, we disallow constant time rules completely for both EDB and
+// IDB predicates.
+an_idb_relation(X) :- an_idb_relation(X).
+an_idb_relation(#l, foo)@42 :- . // ILLEGAL
+
+// Any predicate that appears at the head of an asynchronous rule must have a
+// corresponding persistence rule. This is known as guarded asynchrony.
+an_async_idb(X)@async :- an_async_idb(X).
+an_async_idb(X)@next :- an_async_idb(X). // REQUIRED
+
+// A Dedalus^S program must be _syntactically_ stratifiable. Not temporally
+// stratifiable or locally stratifiable or anything fancy like that. It has to
+// be _syntactically_ stratifiable.
+p(X) :- q(X).
+p(X)@next :- p(X), !q(X). // ILLEGAL
