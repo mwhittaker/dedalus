@@ -1,0 +1,81 @@
+// succ(#l, 0, 1) :- .
+// succ(#l, 1, 2) :- .
+// succ(#l, 2, 3) :- .
+// succ(#l, 3, 4) :- .
+// lt(X, Y) :- succ(X, Y).
+// lt(X, Y) :- lt(X, Z), succ(Z, Y).
+//
+// counter(#l, 0) :- .
+// counter(1)@next :- counter(0).
+// counter(2)@next :- counter(1).
+// counter(3)@next :- counter(2).
+// counter(4)@next :- counter(3).
+//
+// a(X, Y)@next :- counter(X), counter(Y), lt(X, Y).
+// b(Y, X)@next :- a(X, Y).
+// a(X, Z) :- a(X, Y), b(Y, Z).
+
+// Stratum 1.
+succ(0, 1) :- stratum1_ready().
+succ(1, 2) :- stratum1_ready().
+succ(2, 3) :- stratum1_ready().
+succ(3, 4) :- stratum1_ready().
+
+// Stratum 2.
+lt(X, Y) :- succ(X, Y), stratum2_ready().
+lt(X, Y) :- lt(X, Z), succ(Z, Y), stratum2_ready().
+
+// Stratum 3.
+counter(0) :- stratum3_ready().
+counter(1)@next :- counter(0), stratum3_ready().
+counter(2)@next :- counter(1), stratum3_ready().
+counter(3)@next :- counter(2), stratum3_ready().
+counter(4)@next :- counter(3), stratum3_ready().
+
+// Stratum 4.
+a(X, Y)@next :- counter(X), counter(Y), lt(X, Y), stratum4_ready().
+b(Y, X)@next :- a(X, Y), stratum4_ready().
+a(X, Z) :- a(X, Y), b(Y, Z), stratum4_ready().
+
+
+dummy(#l) :- .
+
+succ1(X, Y) :- succ(X, Y).
+succ2(X, Y)@next :- succ1(X, Y).
+succ1_neq_succ2() :- succ1(X, Y), !succ2(X, Y).
+succ1_neq_succ2() :- !succ1(X, Y), succ2(X, Y).
+succ1_eq_succ2() :- dummy(), !succ1_neq_succ2().
+
+lt1(X, Y) :- lt(X, Y).
+lt2(X, Y)@next :- lt1(X, Y).
+lt1_neq_lt2() :- lt1(X, Y), !lt2(X, Y).
+lt1_neq_lt2() :- !lt1(X, Y), lt2(X, Y).
+lt1_eq_lt2() :- dummy(), !lt1_neq_lt2().
+
+counter1(X) :- counter(X).
+counter2(X)@next :- counter1(X).
+counter1_neq_counter2() :- counter1(X), !counter2(X).
+counter1_neq_counter2() :- !counter1(X), counter2(X).
+counter1_eq_counter2() :- dummy(), !counter1_neq_counter2().
+
+a1(X, Y) :- a(X, Y).
+a2(X, Y)@next :- a1(X, Y).
+a1_neq_a2() :- a1(X, Y), !a2(X, Y).
+a1_neq_a2() :- !a1(X, Y), a2(X, Y).
+a1_eq_a2() :- dummy(), !a1_neq_a2().
+
+b1(X, Y) :- b(X, Y).
+b2(X, Y)@next :- b1(X, Y).
+b1_neq_b2() :- b1(X, Y), !b2(X, Y).
+b1_neq_b2() :- !b1(X, Y), b2(X, Y).
+b1_eq_b2() :- dummy(), !b1_neq_b2().
+
+stratum1_ready(#l) :- .
+stratum2_ready() :- stratum1_done().
+stratum3_ready(#l) :- .
+stratum4_ready() :- stratum2_done(), stratum3_done().
+
+stratum1_done() :- succ1_eq_succ2().
+stratum2_done() :- stratum1_done(), lt1_eq_lt2().
+stratum3_done() :- counter1_eq_counter2().
+stratum4_done() :- stratum2_done(), stratum3_done(), a1_eq_a2(), b1_eq_b2().
