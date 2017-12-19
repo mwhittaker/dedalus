@@ -7,6 +7,7 @@ main() {
     scripts/pylint.sh
     scripts/mypy.sh
     scripts/unittests.sh
+    scripts/typecheck_examples.sh
     set +x
 }
 
