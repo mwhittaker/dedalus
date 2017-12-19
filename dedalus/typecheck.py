@@ -1,9 +1,11 @@
 from typing import Dict
 
+import networkx as nx
+
 import asts
 
 
-def _fixed_arities(program: asts.Program):
+def _fixed_arities(program: asts.Program) -> None:
     """
     The arity of every predicate in a dedalus program must be fixed. For
     example, the following program is ill-formed because `p` has both arity 1
@@ -22,7 +24,7 @@ def _fixed_arities(program: asts.Program):
             else:
                 arities[p] = arity
 
-def _range_restricted(program: asts.Program):
+def _range_restricted(program: asts.Program) -> None:
     """
     A dedalus rule is range restricted if (1) every variable in the head of the
     rule appears in some positive literal in the body and (2) every variable in
@@ -60,7 +62,7 @@ def _range_restricted(program: asts.Program):
     for rule in program.rules:
         range_restricted_rule(rule)
 
-def _timestamp_restricted(program: asts.Program):
+def _timestamp_restricted(program: asts.Program) -> None:
     """
     A dedalus rule is timestamp restricted if constant time rules have empty
     bodies. For example, the following rules are timestamp restricted:
@@ -78,7 +80,7 @@ def _timestamp_restricted(program: asts.Program):
             msg = f'The constant time rule "{rule}" has a non-empty body.'
             raise ValueError(msg)
 
-def _location_restricted(program: asts.Program):
+def _location_restricted(program: asts.Program) -> None:
     """
     A dedalus rule is location restricted if
 
@@ -136,11 +138,34 @@ def _location_restricted(program: asts.Program):
     for rule in program.rules:
         location_restricted_rule(rule)
 
+def _stratified_deductive_pdg(program: asts.Program) -> None:
+    def is_negative_cycle(g, cycle):
+        for src, dst in zip(cycle[:-1], cycle[1:]):
+            if g[src][dst]['negative']:
+                return True
+        return False
+
+    if not program.is_deductive_stratified():
+        dpdg = program.deductive_pdg()
+
+        msgs = [('The deductive rules of this program are not stratifiable. '
+                 'The program has the following deductive PDG: ')]
+        msgs.append(f'  Nodes: {dpdg.nodes}')
+        msgs.append(f'  Edges: {dpdg.edges}')
+        msgs.append('and the following cycles through negation exist:')
+        for cycle in nx.simple_cycles(dpdg):
+            if is_negative_cycle(dpdg, cycle):
+                msgs.append(f'  {cycle}')
+
+        msg = "\n".join(msgs)
+        raise ValueError(msg)
+
 def typecheck(program: asts.Program) -> asts.Program:
     _fixed_arities(program)
     _range_restricted(program)
     _timestamp_restricted(program)
     _location_restricted(program)
+    _stratified_deductive_pdg(program)
     return program
 
 def typechecks(program: asts.Program) -> bool:

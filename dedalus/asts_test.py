@@ -118,9 +118,9 @@ class TestAsts(unittest.TestCase):
 
     def test_program_deductive_pdg(self) -> None:
         source = r"""
-          a(X) :- b(X), d(X).
-          b(X) :- c(X), e(X).
-          c(X) :- a(X).
+          a(X) :- p(X).
+          b(X) :- a(X), d(X).
+          c(X) :- !b(X), e(X).
           d(X)@next :- a(X), b(X), c(X).
           e(X)@async :- a(X), b(X), c(X).
           a(X)@next :- a(X).
@@ -129,11 +129,17 @@ class TestAsts(unittest.TestCase):
         program = typecheck(desugar(parser.parse(source)))
         dpdg = program.deductive_pdg()
 
+        a = self.predicate('a')
+        b = self.predicate('b')
+        c = self.predicate('c')
         expected = nx.DiGraph()
-        expected.add_nodes_from(['a', 'b', 'c'])
-        expected.add_edges_from([('b', 'a'), ('c', 'b'), ('a', 'c')])
+        expected.add_nodes_from([a, b, c])
+        expected.add_edges_from([(a, b), (b, c)])
 
-        self.assertTrue(nx.is_isomorphic(dpdg, expected))
+        self.assertEqual(dpdg.nodes, expected.nodes)
+        self.assertEqual(dpdg.edges, expected.edges)
+        self.assertFalse(dpdg[a][b]['negative'])
+        self.assertTrue(dpdg[b][c]['negative'])
 
     def test_program_is_stratified(self) -> None:
         stratified_programs: List[str] = [
@@ -164,38 +170,38 @@ class TestAsts(unittest.TestCase):
         ]
         for source in stratified_programs:
             program = typecheck(desugar(parser.parse(source)))
-            self.assertTrue(program.is_stratified())
+            self.assertTrue(program.is_stratified(), source)
 
         not_stratified_programs: List[str] = [
-            r"""a(X) :- p(X), !b(X).
-                b(X) :- p(X), !a(X).""",
-            r"""a(X) :- p(X), !b(X).
-                b(X) :- p(X), a(X).""",
-            r"""a(X) :- p(X), !b(X).
-                b(X) :- p(X), c(X).
-                c(X) :- p(X), a(X).""",
-            r"""a(X) :- p(X), !b(X).
-                b(X) :- p(X), c(X).
-                c(X) :- p(X), a(X).""",
-            r"""b(X) :- p(X), !a(X).
-                c(X) :- p(X), b(X).
-                c(X) :- p(X), !a(X).
-                d(X) :- p(X), c(X).
-                a(X) :- p(X), d(X).""",
-            r"""b(X) :- p(X), a(X).
-                c(X) :- p(X), b(X).
-                a(X) :- p(X), c(X).
+            r"""a(X)@next :- p(X), !b(X).
+                b(X)@next :- p(X), !a(X).""",
+            r"""a(X)@next :- p(X), !b(X).
+                b(X)@next :- p(X), a(X).""",
+            r"""a(X)@next :- p(X), !b(X).
+                b(X)@next :- p(X), c(X).
+                c(X)@next :- p(X), a(X).""",
+            r"""a(X)@next :- p(X), !b(X).
+                b(X)@next :- p(X), c(X).
+                c(X)@next :- p(X), a(X).""",
+            r"""b(X)@next :- p(X), !a(X).
+                c(X)@next :- p(X), b(X).
+                c(X)@next :- p(X), !a(X).
+                d(X)@next :- p(X), c(X).
+                a(X)@next :- p(X), d(X).""",
+            r"""b(X)@next :- p(X), a(X).
+                c(X)@next :- p(X), b(X).
+                a(X)@next :- p(X), c(X).
 
-                d(X) :- p(X), !c(X).
-                a(X) :- p(X), !f(x).
+                d(X)@next :- p(X), !c(X).
+                a(X)@next :- p(X), !f(x).
 
-                e(X) :- p(X), d(X).
-                f(X) :- p(X), e(X).
-                d(X) :- p(X), f(X).""",
+                e(X)@next :- p(X), d(X).
+                f(X)@next :- p(X), e(X).
+                d(X)@next :- p(X), f(X).""",
         ]
         for source in not_stratified_programs:
             program = typecheck(desugar(parser.parse(source)))
-            self.assertFalse(program.is_stratified())
+            self.assertFalse(program.is_stratified(), source)
 
     def test_program_has_guarded_asynchrony(self) -> None:
         guarded_async_programs: List[str] = [

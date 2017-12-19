@@ -258,14 +258,13 @@ class Program(NamedTuple):
 
         return g
 
-    def is_stratified(self) -> bool:
+    def _is_stratified(self, pdg: nx.DiGraph) -> bool:
         """
-        `program.is_stratified()` returns whether `program` is stratified. A
-        datalog program is stratified if its PDG does not contain any cycles
-        that contain a negative edge.
+        `p.is_stratified(pdg)` returns whether `pdg` is stratified. A PDG is
+        stratified if it does not contain any cycles that contain a negative
+        edge.
         """
         # Compute the number of cycles in the original PDG.
-        pdg = self.pdg()
         num_cycles = len(list(nx.simple_cycles(pdg)))
 
         # Compute the number of cycles in the PDG with all negative edges
@@ -282,6 +281,20 @@ class Program(NamedTuple):
         # cycle contains only positive edges. Thus, removing the negative edges
         # does not reduce the number of cycles.
         return num_cycles == num_positive_cycles
+
+    def is_deductive_stratified(self) -> bool:
+        """
+        `program.is_stratified()` returns whether `program`'s deductive PDG is
+        stratified.
+        """
+        return self._is_stratified(self.deductive_pdg())
+
+    def is_stratified(self) -> bool:
+        """
+        `program.is_stratified()` returns whether `program`'s PDG is
+        stratified.
+        """
+        return self._is_stratified(self.pdg())
 
     def has_guarded_asynchrony(self) -> bool:
         """
