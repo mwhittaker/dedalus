@@ -1,0 +1,20 @@
+// a -> b -> c -> d
+//      ^    |
+//      '____'
+link(#node, a, b)@0 :- .
+link(#node, b, c)@0 :- .
+link(#node, c, d)@0 :- .
+link(#node, c, b)@0 :- .
+
+nodes(X) :- link(X, Y).
+nodes(Y) :- link(X, Y).
+
+path(X, Y) :- link(X, Y).
+path(X, Y) :- path(X, Z), link(Z, Y).
+path(X, Y)@next :- path(X, Y).
+
+not_path(X, Y) :- nodes(X), nodes(Y), !path(X, Y).
+not_path(X, Y)@next :- not_path(X, Y).
+
+not_not_path(X, Y) :- nodes(X), nodes(Y), !not_path(X, Y).
+not_not_path(X, Y)@next :- not_not_path(X, Y).
