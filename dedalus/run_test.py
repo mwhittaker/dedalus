@@ -2,7 +2,8 @@ import unittest
 from typing import Any, Dict, List, Optional, Tuple
 
 from desugar import desugar
-from run import Bindings, _eval_rule, _subst, _unify, run, spawn, step
+from run import (Bindings, _eval_rule, _stratify, _subst, _unify, run, spawn,
+                 step)
 from typecheck import typecheck
 import parser
 import asts
@@ -166,6 +167,47 @@ class TestRun(unittest.TestCase):
 
         actual = set(_eval_rule(process, program.rules[0]))
         self.assertEqual(actual, expected)
+
+    def test_stratify(self) -> None:
+        source = """
+          b(X) :- a(X).
+          c(X) :- b(X).
+          a(X) :- c(X).
+
+          e(X) :- d(X).
+          d(X) :- e(X).
+
+          g(X) :- f(X).
+          h(X) :- g(X).
+          f(X) :- h(X).
+
+          d(X) :- d(X), !b(X).
+          f(X) :- f(X), !a(X).
+          g(X) :- g(X), !e(X).
+        """
+        program = typecheck(desugar(parser.parse(source)))
+        pdg = program.pdg()
+        stratification = _stratify(pdg)
+
+        a = self.predicate('a')
+        b = self.predicate('b')
+        c = self.predicate('c')
+        d = self.predicate('d')
+        e = self.predicate('e')
+        f = self.predicate('f')
+        g = self.predicate('g')
+        h = self.predicate('h')
+
+        self.assertEqual(len(stratification), 3)
+        self.assertEqual(set(stratification[0].nodes), {a, b, c})
+        self.assertEqual(set(stratification[1].nodes), {e, d})
+        self.assertEqual(set(stratification[2].nodes), {f, g, h})
+        self.assertEqual(set(stratification[0].edges),
+                         {(a,b), (b,c), (c,a)})
+        self.assertEqual(set(stratification[1].edges),
+                         {(e,d), (d,e), (d,d)})
+        self.assertEqual(set(stratification[2].edges),
+                         {(f,g), (g,h), (h,f), (f,f), (g,g)})
 
     def test_step(self) -> None:
         # TODO(mwhittaker): Test step.

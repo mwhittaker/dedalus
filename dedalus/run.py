@@ -2,9 +2,11 @@ from collections import defaultdict
 from copy import deepcopy
 from itertools import product
 from tabulate import tabulate
-from typing import (Any, Callable, DefaultDict, Dict, Generator, List,
-                    NamedTuple, Optional, Set, Tuple)
+from typing import (Any, Callable, DefaultDict, Dict, FrozenSet, Generator,
+                    List, NamedTuple, Optional, Set, Tuple)
 import random
+
+import networkx as nx
 
 import asts
 
@@ -136,6 +138,61 @@ def _eval_rule(process: Process,
             continue
 
         yield _subst(rule.head, bindings)
+
+def _stratify(pdg: nx.DiGraph) -> List[nx.DiGraph]:
+    """
+    Given a stratifiable PDG `pdg`, `_stratify(pdg)` returns a list of strata.
+    For example, consider the following datalog program:
+
+        b(X) :- a(X).
+        c(X) :- b(X).
+        a(X) :- c(X).
+
+        e(X) :- d(X).
+        d(X) :- e(X).
+
+        g(X) :- f(X).
+        h(X) :- g(X).
+        f(X) :- h(X).
+
+        d(X) :- d(X), !b(X).
+        f(X) :- f(X), !a(X).
+        g(X) :- g(X), !e(X).
+
+    It's PDG looks like this:
+
+         _________
+        v         |
+        b -> c -> a--.   _________
+        |            |  v         |
+        |            '> f -> g -> h
+        v                    ^
+        d -> e --------------'
+        ^    |
+        '----
+
+    Running _stratify on this PDG will return a list of three graphs. The first
+    will be the [a, b, c] subgraph. The second will be the [e, d] subgraph. The
+    third graph will be the [f, g, h] subgraph.
+    """
+    components: List[FrozenSet[asts.Predicate]] = \
+        [frozenset(c) for c in nx.strongly_connected_components(pdg)]
+    components_by_node = {node: c for c in components for node in c}
+
+    collapsed_pdg = nx.DiGraph()
+    collapsed_pdg.add_nodes_from(components)
+    for edge in pdg.edges:
+        if pdg.edges[edge]['negative']:
+            src = components_by_node[edge[0]]
+            dst = components_by_node[edge[1]]
+            collapsed_pdg.add_edge(src, dst)
+
+    stratification: List[nx.DiGraph] = []
+    for nodes in nx.topological_sort(collapsed_pdg):
+        g = pdg.copy()
+        g.remove_nodes_from(set(pdg.nodes) - nodes)
+        stratification.append(g)
+    return stratification
 
 def spawn(program: asts.Program, randint: RandInt = None) -> Process:
     """Spawn a program into a process."""
