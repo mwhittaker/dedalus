@@ -181,9 +181,9 @@ class TestRun(unittest.TestCase):
           h(X) :- g(X).
           f(X) :- h(X).
 
-          d(X) :- d(X), !b(X).
-          f(X) :- f(X), !a(X).
-          g(X) :- g(X), !e(X).
+          d(X) :- b(X).
+          f(X) :- a(X).
+          g(X) :- e(X).
         """
         program = typecheck(desugar(parser.parse(source)))
         pdg = program.pdg()
@@ -202,12 +202,9 @@ class TestRun(unittest.TestCase):
         self.assertEqual(set(stratification[0].nodes), {a, b, c})
         self.assertEqual(set(stratification[1].nodes), {e, d})
         self.assertEqual(set(stratification[2].nodes), {f, g, h})
-        self.assertEqual(set(stratification[0].edges),
-                         {(a,b), (b,c), (c,a)})
-        self.assertEqual(set(stratification[1].edges),
-                         {(e,d), (d,e), (d,d)})
-        self.assertEqual(set(stratification[2].edges),
-                         {(f,g), (g,h), (h,f), (f,f), (g,g)})
+        self.assertEqual(set(stratification[0].edges), {(a,b), (b,c), (c,a)})
+        self.assertEqual(set(stratification[1].edges), {(e,d), (d,e)})
+        self.assertEqual(set(stratification[2].edges), {(f,g), (g,h), (h,f)})
 
     def test_step(self) -> None:
         # TODO(mwhittaker): Test step.

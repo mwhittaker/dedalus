@@ -155,9 +155,9 @@ def _stratify(pdg: nx.DiGraph) -> List[nx.DiGraph]:
         h(X) :- g(X).
         f(X) :- h(X).
 
-        d(X) :- d(X), !b(X).
-        f(X) :- f(X), !a(X).
-        g(X) :- g(X), !e(X).
+        d(X) :- b(X).
+        f(X) :- a(X).
+        g(X) :- e(X).
 
     It's PDG looks like this:
 
@@ -181,11 +181,11 @@ def _stratify(pdg: nx.DiGraph) -> List[nx.DiGraph]:
 
     collapsed_pdg = nx.DiGraph()
     collapsed_pdg.add_nodes_from(components)
-    for edge in pdg.edges:
-        if pdg.edges[edge]['negative']:
-            src = components_by_node[edge[0]]
-            dst = components_by_node[edge[1]]
-            collapsed_pdg.add_edge(src, dst)
+    for (src, dst) in pdg.edges:
+        src_component = components_by_node[src]
+        dst_component = components_by_node[dst]
+        if src_component != dst_component:
+            collapsed_pdg.add_edge(src_component, dst_component)
 
     stratification: List[nx.DiGraph] = []
     for nodes in nx.topological_sort(collapsed_pdg):
@@ -229,14 +229,18 @@ def step(process: Process) -> Process:
             db[rule.head.predicate].add(tuple_)
 
     # Deductive rules.
-    data_changed = True
-    while data_changed:
-        data_changed = False
-        for rule in deductive_rules:
-            tuples = set(_eval_rule(process, rule))
-            if len(tuples - db[rule.head.predicate]) != 0:
-                data_changed = True
-            db[rule.head.predicate] |= tuples
+    for strata in _stratify(process.program.deductive_pdg()):
+        strata_rules = [r for r in deductive_rules
+                          if r.head.predicate in strata.nodes]
+
+        data_changed = True
+        while data_changed:
+            data_changed = False
+            for rule in strata_rules:
+                tuples = set(_eval_rule(process, rule))
+                if len(tuples - db[rule.head.predicate]) != 0:
+                    data_changed = True
+                db[rule.head.predicate] |= tuples
 
     # Inductive rules.
     next_timestep = process.timestep + 1
