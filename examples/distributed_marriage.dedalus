@@ -1,3 +1,5 @@
+// Example 5 from [1].
+// [1]: https://www2.eecs.berkeley.edu/Pubs/TechRpts/2012/EECS-2012-171.pdf
 node(#b) :- .
 node(#g) :- .
 node(#p) :- .

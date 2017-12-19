@@ -1,3 +1,5 @@
+// Example 3 from [1].
+// [1]: https://www2.eecs.berkeley.edu/Pubs/TechRpts/2012/EECS-2012-171.pdf
 i_do_edb(#a, bride) :- .
 i_do_edb(#a, groom) :- .
 
