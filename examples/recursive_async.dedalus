@@ -1,0 +1,9 @@
+// - Two-round voting seems essential.
+// - Though it's two rounds, it's really not the same things as 2PC. More like
+//   a snapshot algorithm.
+// - Negation over nodes is avoidable.
+// - Negation over predicates seems unavoidable.
+// - Pre-designate master node to avoid min id.
+// - Potentially some bugs with start_round_1. Not sure.
+// - Have to integrate fixes from non-async recursive or else it doesn't work.
+todo(#l) :- .
