@@ -1,0 +1,106 @@
+// link_edb(#a, a, b) :- .
+// link_edb(#b, b, c) :- .
+// link_edb(#c, c, d) :- .
+// link_edb(#c, c, b) :- .
+//
+// link(#m, X, Y)@async :- link_edb(#L, X, Y).
+// link(X, Y)@next :- link(X, Y).
+//
+// nodes(X) :- link(X, Y).
+// nodes(Y) :- link(X, Y).
+//
+// path(X, Y) :- link(X, Y).
+// path(X, Y) :- path(X, Z), link(Z, Y).
+// path(X, Y)@next :- path(X, Y).
+//
+// not_path(X, Y) :- nodes(X), nodes(Y), !path(X, Y).
+// not_path(X, Y)@next :- not_path(X, Y).
+
+////////////////////////////////////////////////////////////////////////////////
+
+// Stratum 1.
+link_edb(#a, a, b) :- stratum1_ready(#a).
+link_edb(#b, b, c) :- stratum1_ready(#b).
+link_edb(#c, c, d) :- stratum1_ready(#c).
+link_edb(#c, c, b) :- stratum1_ready(#c).
+
+// Stratum 2.
+link_buf(#ABC, X, Y)      :- link_edb(#ABC, X, Y).
+link_buf(#ABC, X, Y)@next :- link_buf(#ABC, X, Y).
+link_tagged(#m, ABC, X, Y)@async :- link_buf(#ABC, X, Y).
+link_tagged(#m, ABC, X, Y)@next  :- link_tagged(#m, ABC, X, Y).
+link_ack(#ABC, X, Y)@async :- link_tagged(#m, ABC, X, Y).
+link_ack(#ABC, X, Y)@next  :- link_ack(#ABC, X, Y).
+link_done_node(#m, ABC)@async :- link_edb1_eq_link_edb2(#ABC),
+                                 link_buf_eq_link_ack(#ABC).
+link_done_node(#m, ABC)@next  :- link_done_node(#m, ABC).
+
+link(X, Y) :- link_tagged(ABC, X, Y), stratum2_ready().
+link(X, Y)@next :- link(X, Y), stratum2_ready().
+
+// Stratum 3.
+nodes(X) :- link(X, Y), stratum3_ready().
+nodes(Y) :- link(X, Y), stratum3_ready().
+
+// Stratum 4.
+path(X, Y) :- link(X, Y), stratum4_ready().
+path(X, Y) :- path(X, Z), link(Z, Y), stratum4_ready().
+path(X, Y)@next :- path(X, Y), stratum4_ready().
+
+// Stratum 5.
+not_path(X, Y) :- nodes(X), nodes(Y), !path(X, Y), stratum5_ready().
+not_path(X, Y)@next :- not_path(X, Y), stratum5_ready().
+
+////////////////////////////////////////////////////////////////////////////////
+
+dummy(#a) :- .
+dummy(#b) :- .
+dummy(#c) :- .
+dummy(#m) :- .
+
+link_edb1(X, Y) :- link_edb(X, Y).
+link_edb2(X, Y)@next :- link_edb1(X, Y).
+link_edb1_neq_link_edb2() :- link_edb1(X, Y), !link_edb2(X, Y).
+link_edb1_neq_link_edb2() :- !link_edb1(X, Y), link_edb2(X, Y).
+link_edb1_eq_link_edb2() :- dummy(), !link_edb1_neq_link_edb2().
+
+link_buf_neq_link_ack() :- link_buf(X, Y), !link_ack(X, Y).
+link_buf_neq_link_ack() :- !link_buf(X, Y), link_ack(X, Y).
+link_buf_eq_link_ack() :- dummy(), !link_buf_neq_link_ack().
+
+link1(X, Y) :- link(X, Y).
+link2(X, Y)@next :- link1(X, Y).
+link1_neq_link2() :- link1(X, Y), !link2(X, Y).
+link1_neq_link2() :- !link1(X, Y), link2(X, Y).
+link1_eq_link2() :- dummy(), !link1_neq_link2().
+
+nodes1(X) :- nodes(X).
+nodes2(X)@next :- nodes1(X).
+nodes1_neq_nodes2() :- nodes1(X), !nodes2(X).
+nodes1_neq_nodes2() :- !nodes1(X), nodes2(X).
+nodes1_eq_nodes2() :- dummy(), !nodes1_neq_nodes2().
+
+path1(X, Y) :- path(X, Y).
+path2(X, Y)@next :- path1(X, Y).
+path1_neq_path2() :- path1(X, Y), !path2(X, Y).
+path1_neq_path2() :- !path1(X, Y), path2(X, Y).
+path1_eq_path2() :- dummy(), !path1_neq_path2().
+
+not_path1(X, Y) :- not_path(X, Y).
+not_path2(X, Y)@next :- not_path1(X, Y).
+not_not_path1_neq_path2() :- not_path1(X, Y), !not_path2(X, Y).
+not_not_path1_neq_path2() :- !not_path1(X, Y), not_path2(X, Y).
+not_not_path1_eq_path2() :- dummy(), !not_not_path1_neq_path2().
+
+stratum1_ready() :- dummy().
+stratum2_ready() :- link_done_node(a), link_done_node(b), link_done_node(c).
+stratum3_ready() :- stratum2_done().
+stratum4_ready() :- stratum2_done().
+stratum5_ready() :- stratum3_done(), stratum4_done().
+
+stratum1_done() :- stratum1_ready(), link_edb1_eq_link_edb2().
+stratum2_done() :- stratum2_ready(), stratum1_done(), link1_eq_link2().
+stratum3_done() :- stratum3_ready(), stratum2_done(), nodes1_eq_nodes2().
+stratum4_done() :- stratum4_ready(), stratum2_done(), path1_eq_path2().
+stratum5_done() :- stratum5_ready(), stratum3_done(), stratum4_done(),
+                   not_path1_eq_not_path2().
