@@ -20,10 +20,10 @@ class TestRun(unittest.TestCase):
         return parser.atom.parse_strict(x)
 
     def test_subst(self) -> None:
-        A = self.var('A')
-        X = self.var('X')
-        Y = self.var('Y')
-        Z = self.var('Z')
+        A = 'A'
+        X = 'X'
+        Y = 'Y'
+        Z = 'Z'
 
         GoodTestCase = Tuple[asts.Atom, Bindings, Tuple[Any, ...]]
         good_test_cases: List[GoodTestCase] = [
@@ -53,12 +53,12 @@ class TestRun(unittest.TestCase):
                 print(atom, bindings)
 
     def test_unify(self) -> None:
-        A = self.var('A')
-        B = self.var('B')
-        C = self.var('C')
-        X = self.var('X')
-        Y = self.var('Y')
-        Z = self.var('Z')
+        A = 'A'
+        B = 'B'
+        C = 'C'
+        X = 'X'
+        Y = 'Y'
+        Z = 'Z'
         a = 'a'
         b = 'b'
         c = 'c'

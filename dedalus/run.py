@@ -15,7 +15,7 @@ Relation = Set[Tuple[Any, ...]]
 Database = Dict[asts.Predicate, Relation]
 DefaultDatabase = DefaultDict[asts.Predicate, Relation]
 AsyncBuffer = DefaultDict[int, DefaultDatabase]
-Bindings = Dict[asts.Variable, str]
+Bindings = Dict[str, str]
 RandInt = Callable[[], int]
 
 
@@ -70,8 +70,8 @@ def _subst(atom: asts.Atom, bindings: Bindings) -> Tuple[Any, ...]:
             values.append(term.x)
         else:
             assert isinstance(term, asts.Variable)
-            assert term in bindings
-            values.append(bindings[term])
+            assert term.x in bindings, (term.x, bindings)
+            values.append(bindings[term.x])
     return tuple(values)
 
 def _unify(atoms: List[asts.Atom],
@@ -104,9 +104,9 @@ def _unify(atoms: List[asts.Atom],
                     return None
             else:
                 assert isinstance(term, asts.Variable)
-                if term in bindings and bindings[term] != value:
+                if term.x in bindings and bindings[term.x] != value:
                     return None
-                bindings[term] = value
+                bindings[term.x] = value
     return bindings
 
 def _eval_rule(process: Process,
