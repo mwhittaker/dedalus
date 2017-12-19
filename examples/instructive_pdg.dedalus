@@ -1,0 +1,14 @@
+b(X) :- a(X).
+c(X) :- b(X).
+a(X) :- c(X).
+a(X)@next :- a(X).
+
+e(X) :- d(X).
+d(X) :- e(X).
+
+g(X)@async :- f(X).
+h(X) :- g(X).
+f(X) :- h(X).
+
+f(X) :- f(X), !a(X).
+h(X)@async :- d(X).
