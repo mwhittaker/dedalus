@@ -28,6 +28,7 @@ Then, use [`dedalus.py`](dedalus/dedalus.py) to manipulate Dedalus programs:
 ## Syntax Highlighting
 For Dedalus syntax highlighting, see https://github.com/mwhittaker/dedalus-vim.
 
+## References
 - [\[1\]: Alvaro, Peter, et al. "Dedalus: Datalog in time and space." _Datalog Reloaded_ (2011): 262-281.][alvaro_paper]
 - [\[2\]: Marczak, William, et al. "Confluence analysis for distributed programs: A model-theoretic approach." _Datalog in Academia and Industry_ (2012): 135-147.][marczak_paper]
 
