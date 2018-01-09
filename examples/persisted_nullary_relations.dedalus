@@ -11,5 +11,6 @@ p2(X)@next :- p1(X).
 p1_neq_p2() :-  p1(X), !p2(X).
 p1_neq_p2() :- !p1(X),  p2(X).
 p1_eq_p2() :- dummy(), !p1_neq_p2().
+p1_eq_p2()@next :- p1_eq_p2().
 
 out(foo) :- p1_eq_p2().
