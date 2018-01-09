@@ -1,11 +1,12 @@
 from collections import defaultdict
 from copy import deepcopy
 from itertools import product
-from tabulate import tabulate
 from typing import (Any, Callable, DefaultDict, Dict, FrozenSet, Generator,
                     List, NamedTuple, Optional, Set, Tuple)
 import random
 
+from tabulate import tabulate
+from termcolor import colored
 import networkx as nx
 
 import asts
@@ -27,24 +28,37 @@ class Process(NamedTuple):
     randint: RandInt
 
     def __str__(self) -> str:
-        timestep = f"timestep = {self.timestep}"
+        def underline(s: str) -> str:
+            return s + '\n' + ('=' * len(s))
 
-        relations = []
+        def colored_relation(name: str, t: int) -> str:
+            return (colored(name, 'blue', attrs=['bold']) +
+                    ' ' +
+                    colored(f'(t = {t})', 'green'))
+
+        def formatted_table(r: Relation) -> str:
+            return tabulate(sorted(r), tablefmt='orgtbl')
+
+        ss: List[str] = []
+
+        t = self.timestep - 1
+        ss.append(underline(f'Relations at end of timestep {t}.'))
+
         for p in sorted(self.database):
-            relations.append(p.x)
-            relation = sorted(self.database[p])
-            relations.append(tabulate(relation, tablefmt="psql"))
-        database = "\n".join(relations)
+            if len(self.database[p]) > 0:
+                ss.append(colored_relation(p.x, t))
+                ss.append(formatted_table(self.database[p]))
 
-        async_relations = []
+        ss.append(underline(f'Async buffer.'))
+
         for t in sorted(self.async_buffer):
             for p in sorted(self.async_buffer[t]):
-                async_relations.append(f"{p.x} (t = {t})")
-                relation = sorted(self.async_buffer[t][p])
-                async_relations.append(tabulate(relation, tablefmt="psql"))
-        async_buffer = "\n".join(async_relations)
+                if len(self.async_buffer[t][p]) > 0:
+                    ss.append(colored_relation(p.x, t))
+                    async_relation = self.async_buffer[t][p]
+                    ss.append(formatted_table(async_relation))
 
-        return f"{timestep}\n\n\n{database}\n\n\n{async_buffer}"
+        return '\n'.join(ss)
 
 def _empty_database(program: asts.Program) -> Database:
     return {p: set() for p in program.predicates()}
